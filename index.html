@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>สรุปจีบได้มั้ย</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- เอฟเฟกต์พลุ Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #0f111a;
+            font-family: 'Kanit', 'Plus Jakarta Sans', sans-serif;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Ambient Glow Background */
+        .glow-bg {
+            position: absolute;
+            width: 350px;
+            height: 350px;
+            background: radial-gradient(circle, rgba(255, 107, 129, 0.25) 0%, rgba(255, 107, 129, 0) 70%);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 0;
+            filter: blur(40px);
+            animation: pulse 4s infinite alternate;
+        }
+
+        @keyframes pulse {
+            0% { transform: translate(-50%, -50%) scale(0.9); opacity: 0.6; }
+            100% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+        }
+
+        /* Glassmorphism Card */
+        .card {
+            position: relative;
+            z-index: 1;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            padding: 55px 40px;
+            border-radius: 32px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            text-align: center;
+            width: 88%;
+            max-width: 380px;
+            min-height: 260px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        h1 {
+            color: #ffffff;
+            font-size: 26px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+            margin-bottom: 40px;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            line-height: 1.4;
+        }
+
+        .btn-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 24px;
+            width: 100%;
+            position: relative;
+            min-height: 52px;
+        }
+
+        button {
+            padding: 14px 32px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 100px;
+            cursor: pointer;
+            outline: none;
+            font-family: 'Kanit', sans-serif;
+            letter-spacing: 0.5px;
+        }
+
+        #yes {
+            background: linear-gradient(135deg, #ff6b81, #ff4757);
+            color: white;
+            box-shadow: 0 10px 25px rgba(255, 71, 87, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        #yes:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 15px 30px rgba(255, 71, 87, 0.6);
+        }
+
+        #no {
+            background: rgba(255, 255, 255, 0.08);
+            color: rgba(255, 255, 255, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+            position: absolute;
+            right: 25px;
+            transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), background 0.3s ease;
+        }
+
+        #no:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .success-heart {
+            font-size: 48px;
+            display: none;
+            animation: heartBeat 1.2s infinite;
+            margin-top: 10px;
+        }
+
+        @keyframes heartBeat {
+            0% { transform: scale(1); }
+            14% { transform: scale(1.15); }
+            28% { transform: scale(1); }
+            42% { transform: scale(1.15); }
+            70% { transform: scale(1.15); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="glow-bg"></div>
+
+    <div class="card" id="card">
+        <h1 id="titleText">สรุปจีบได้มั้ย</h1>
+        
+        <div class="btn-row" id="btnRow">
+            <button id="yes" onclick="celebrate()">ได้ดิ</button>
+            <button id="no">ไม่ได้</button>
+        </div>
+
+        <div class="success-heart" id="heart">✨💖✨</div>
+    </div>
+
+    <script>
+        const noBtn = document.getElementById('no');
+        const yesBtn = document.getElementById('yes');
+        const card = document.getElementById('card');
+        const btnRow = document.getElementById('btnRow');
+        const titleText = document.getElementById('titleText');
+        const heart = document.getElementById('heart');
+
+        // ฟังก์ชันหนีของปุ่มไม่ได้
+        function moveNoButton() {
+            const cardRect = card.getBoundingClientRect();
+            const btnRect = noBtn.getBoundingClientRect();
+
+            const padding = 20;
+            const maxX = (cardRect.width / 2) - (btnRect.width / 2) - padding;
+            const maxY = (cardRect.height / 2) - (btnRect.height / 2) - padding;
+
+            const randomX = (Math.random() * maxX * 2) - maxX;
+            const randomY = (Math.random() * maxY * 2) - maxY;
+
+            noBtn.style.transform = `translate(${randomX}px, ${randomY}px)`;
+        }
+
+        noBtn.addEventListener('mouseenter', moveNoButton);
+        noBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            moveNoButton();
+        });
+
+        // เมื่อกดปุ่ม ได้ดิ
+        function celebrate() {
+            btnRow.style.opacity = '0';
+            btnRow.style.transform = 'scale(0.8)';
+            btnRow.style.transition = 'all 0.3s ease';
+
+            setTimeout(() => {
+                btnRow.style.display = 'none';
+                titleText.innerHTML = "ขอบคุณที่ให้โอกาสไอนะ<br>ไอจะทำให้ดีที่สุดเลย ✨";
+                heart.style.display = 'block';
+            }, 300);
+
+            confetti({
+                particleCount: 80,
+                spread: 70,
+                origin: { y: 0.6 },
+                colors: ['#ff6b81', '#ffffff', '#ff4757']
+            });
+        }
+    </script>
+</body>
+</html>
